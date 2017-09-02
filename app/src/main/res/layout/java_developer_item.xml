@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    xmlns:tools="http://schemas.android.com/tools">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/profile_image"
+            app:civ_border_width="2dp"
+            app:civ_border_color="#FFFFFF"
+            android:layout_width="70dp"
+            android:src="@drawable/beauty"
+            android:layout_height="70dp"
+            android:scaleType="centerCrop"/>
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            tools:text="Esther"
+            android:paddingTop="20dp"
+            android:paddingLeft="15dp"
+            android:textColor="@android:color/black"
+            android:textAppearance="?android:textAppearanceMedium" />
+    </LinearLayout>
