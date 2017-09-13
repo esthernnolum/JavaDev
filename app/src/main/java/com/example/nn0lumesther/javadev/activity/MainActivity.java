@@ -2,34 +2,36 @@ package com.example.nn0lumesther.javadev.activity;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.nn0lumesther.javadev.R;
 import com.example.nn0lumesther.javadev.adapter.DeveloperAdapter;
-import com.example.nn0lumesther.javadev.model.Developer;
+import com.example.nn0lumesther.javadev.model.DeveloperList;
+import com.example.nn0lumesther.javadev.network.APIError;
 import com.example.nn0lumesther.javadev.network.Client;
+import com.example.nn0lumesther.javadev.network.ErrorUtils;
 import com.example.nn0lumesther.javadev.network.Service;
-import com.google.gson.JsonObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-    private RecyclerView developerRecyclerView;
-    private DeveloperAdapter mAdapter;
     private static final Service API_INTERFACE = Client.getClient().create(Service.class);
-    private ArrayList<Developer> mList;
+    private RecyclerView developerRecyclerView;
+    private ProgressBar mProgressBar;
+    private DeveloperAdapter mAdapter;
+    private DeveloperList developerList;
+    private TextView errorText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,17 +39,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         developerRecyclerView = (RecyclerView) findViewById(R.id.developers_rv);
-        mList = new ArrayList<>();
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        errorText = (TextView) findViewById(R.id.error_text);
+        developerRecyclerView.setHasFixedSize(true);
+
         getJavaDevelopers();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mProgressBar.setVisibility(View.VISIBLE);
                 getJavaDevelopers();
             }
         });
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //outState.putParcelableArrayList(DEVELOPER_KEY, developerList.getItems());
     }
 
     @Override
@@ -73,26 +86,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getJavaDevelopers() {
-        Call<ArrayList<Developer>> call = API_INTERFACE.getDevsInLagos("language:java+location:lagos&order=asc");
-        call.enqueue(new Callback<ArrayList<Developer>>() {
+        String searchFilter = "language:java location:lagos";
+        Call<DeveloperList> call = API_INTERFACE.getDevsInLagos(searchFilter);
+        call.enqueue(new Callback<DeveloperList>() {
             @Override
-            public void onResponse(Call<ArrayList<Developer>> call, Response<ArrayList<Developer>> response) {
-                mList = response.body();
-                loadData();
-                Toast.makeText( MainActivity.this, "Was successful but view issue", Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<DeveloperList> call, Response<DeveloperList> response) {
+                if (response.isSuccessful()) {
+                    errorText.setVisibility(View.GONE);
+                    mProgressBar.setVisibility(View.GONE);
+                    developerList = response.body();
+                    loadData(developerList);
+
+                    Log.d("TAG", "Request Successful");
+                } else {
+                    APIError error = ErrorUtils.parseError(response);
+
+                    Log.d("TAG", error.message());
+                }
             }
 
             @Override
-            public void onFailure(Call<ArrayList<Developer>> call, Throwable t) {
-                Toast.makeText( MainActivity.this, "Failed to fetch data", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<DeveloperList> call, Throwable t) {
+
+                mProgressBar.setVisibility(View.INVISIBLE);
+                errorText.setVisibility(View.VISIBLE);
+
+                t.printStackTrace();
             }
         });
 
     }
 
-    private void loadData() {
-        mAdapter = new DeveloperAdapter(MainActivity.this, mList);
-        //mAdapter.notifyDataSetChanged();
+    private void loadData(DeveloperList developerList) {
+        mAdapter = new DeveloperAdapter(MainActivity.this, developerList.getItems());
         developerRecyclerView.setAdapter(mAdapter);
     }
 }

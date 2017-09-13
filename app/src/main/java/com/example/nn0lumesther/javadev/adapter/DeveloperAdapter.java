@@ -16,6 +16,7 @@ import com.example.nn0lumesther.javadev.activity.MainActivity;
 import com.example.nn0lumesther.javadev.model.Developer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -24,10 +25,11 @@ import de.hdodenhof.circleimageview.CircleImageView;
  */
 public class DeveloperAdapter extends RecyclerView.Adapter<DeveloperAdapter.DeveloperHolder> {
 
+    public static String DEVELOPER_KEY = "developer";
     private Context mContext;
-    private ArrayList<Developer> developers;
+    private List<Developer> developers;
 
-    public DeveloperAdapter(Context context, ArrayList<Developer> developers) {
+    public DeveloperAdapter(Context context, List<Developer> developers) {
         this.mContext = context;
         this.developers = developers;
     }
@@ -41,15 +43,17 @@ public class DeveloperAdapter extends RecyclerView.Adapter<DeveloperAdapter.Deve
 
     @Override
     public void onBindViewHolder(DeveloperHolder holder, int position) {
-        holder.username.setText(developers.get(position).getItems().get(position).getLogin());
+        final Developer developer = developers.get(position);
+
+        holder.username.setText(developer.getLogin());
         Glide.with(mContext)
-                .load(developers.get(position).getItems().get(position).getAvatar_url())
+                .load(developer.getAvatarUrl())
                 .into(holder.profileImage);
     }
 
     @Override
     public int getItemCount() {
-        return 0;
+        return developers.size();
     }
 
     public class DeveloperHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -61,13 +65,17 @@ public class DeveloperAdapter extends RecyclerView.Adapter<DeveloperAdapter.Deve
             super(itemView);
             profileImage = (CircleImageView) itemView.findViewById(R.id.profile_image);
             username = (TextView) itemView.findViewById(R.id.username);
+            itemView.setOnClickListener(this);
         }
 
+        //intent to the DetailActivity on clicking the username textview or imageview
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(mContext, DetailActivity.class);
+            intent.putExtra(DEVELOPER_KEY, developers.get(getAdapterPosition()));
             mContext.startActivity(intent);
         }
+
     }
 
 }
